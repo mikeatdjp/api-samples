@@ -1,0 +1,15 @@
+{
+  "name": "OAuthExample",
+  "version": "1.0.0",
+  "main": "index.html",
+  "author": "akhan <atiq@digitaldjpool.com>",
+  "license": "MIT",
+  "scripts": {
+    "start": "live-server"
+  },
+  "dependencies": {
+    "jquery": "^3.3.1",
+    "js-cookie": "^2.2.0",
+    "live-server": "^1.2.1"
+  }
+}
