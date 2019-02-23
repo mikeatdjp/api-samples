@@ -4,7 +4,7 @@ Only registered applications are able to use Digital DJ Pool's OAuth 2.0 endpoin
 
 ## Documentation
 
-Documentation is available in the [`docs/`](./docs/index.md) directory.
+Documentation is available in the [`docs/`](docs/index.md) directory.
  
 ## Examples
 
