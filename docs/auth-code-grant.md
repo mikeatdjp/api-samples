@@ -34,7 +34,7 @@ https://digitaldjpool.com/auth?
 client_id=[YOUR-CLIENT-ID]
 &response_type=code
 &state=123456
-&redirect_url=http://localhost/yourapp
+&redirect_url=https://127.0.0.1/yourapp
 &scope=crates
 ```
 
@@ -51,7 +51,7 @@ At this point the user is presented with a page on DigitalDJPool.com that will a
 ### Successful Response
 
 ```
-GET http://localhost/yourapp?code=ABC123FFABD&state=123456
+GET https://127.0.0.1/yourapp?code=ABC123FFABD&state=123456
 ```
 
 | Parameter | Description                                                                                                                                                                                                            |
@@ -72,7 +72,7 @@ Authorization: Basic [BASE64 Encoded (clientId:clientSecret)]
 {
   'grant_type': 'authorization_code',
   'code': 'ABC123FFABD',
-  'redirect_uri': 'http://localhost/yourapp',
+  'redirect_uri': 'https://127.0.0.1/yourapp',
 }
 ```
 
