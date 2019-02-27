@@ -8,6 +8,7 @@
     "start": "live-server --https=./node_modules/live-server-https"
   },
   "dependencies": {
+    "bootstrap": "^4.3.1",
     "jquery": "^3.3.1",
     "js-cookie": "^2.2.0",
     "live-server": "^1.2.1",
