@@ -134,7 +134,7 @@
       }, 500);
     });
 
-    // 2. Request Access Token (See Below) -- This happens when the /auth call returns the user to the `redirect_url`
+    // 2. Request Access Token (See Below) -- This happens when the /auth call returns the user to the `redirect_uri`
 
     // 3. Use Access Token with API Calls
     $('#btnGetCratesFor').click(function () {
@@ -255,7 +255,7 @@
         decodeURIComponent(parts[1].replace(/\+/g, ' '));
     });
 
-    // 2. Request Access Token -- This happens when the /auth call returns the user to the `redirect_url`
+    // 2. Request Access Token -- This happens when the /auth call returns the user to the `redirect_uri`
     if (location.queryString.state !== undefined) {
       if (location.queryString.state != state) {
         alert('state does not match. Cannot trust response');
