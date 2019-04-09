@@ -161,12 +161,12 @@ grant_type=refresh_token
 
 ```
 
-| Parameter     | Required | Description                                                             |
-| ------------- | -------- | ----------------------------------------------------------------------- |
-| `grant_type`    | Yes      | Must be refresh_token for this step of the authorization code flow.     |
+| Parameter       | Required | Description                                                             |
+| --------------- | -------- | ----------------------------------------------------------------------- |
+| `grant_type`    | Yes      | Must be `refresh_token` for this step of the authorization code flow.   |
 | `client_id`     | Yes      | The unique application (client) ID provided to you from Digital DJ Pool |
 | `client_secret` | Yes      | The unique client secret provided to you from Digital DJ Pool           |
-| `refresh_token` | Yes      | The refresh_token that you acquired in the second step of the flow.     |
+| `refresh_token` | Yes      | The `refresh_token` that you acquired in the second step of the flow.   |
 
 ### Successful Response
 
