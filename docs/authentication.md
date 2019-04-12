@@ -49,4 +49,14 @@ A token is returned to the client with an OAuth request. An example would be:
 
 ## API Scopes
 
-These should be separated by a space.
+Scopes let you specify what type of access your application requires. Scopes limit access for the OAuth tokens issued. Requested scopes are displayed to the user on the authorization form.
+
+### Available Scopes
+
+| Name  | Description                                                        |
+| ----- | ------------------------------------------------------------------ |
+| user  | Grants read & write access to the profile information of the user. |
+| crate | Grants read & write access to the user's crates.                   |
+| file  | Grants read & write access to the user's files.                    |
+
+> Note: Your OAuth App requests scopes in the initial authentication step as documented in one of the available flows above. You can specify multiple scopes by separating them with a space.
