@@ -1,0 +1,298 @@
+﻿<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>OAuth Example</title>
+    <link rel="stylesheet" type="text/css" href="node_modules\bootstrap\dist\css\bootstrap.min.css">
+    <script src="node_modules\jquery\dist\jquery.min.js"></script>
+    <script src="node_modules\js-cookie\src\js.cookie.js"></script>
+</head>
+
+<body class="bg-light">
+    <div class="container">
+        <h1 class="pt-5">Digital DJ Pool OAuth Example: Auth Code PKCE Client</h1>
+        <h2>Client Application Authenticated as <span id="spanUsername"></span> </h2>
+        <fieldset class="border border-dark p-2">
+            <legend class="w-auto">Authorization Request</legend>
+            <p>
+                <input id="btnAuthorize" value="Authorize and get new Access Token" type="submit" class="btn btn-outline-primary" />
+            </p>
+        </fieldset>
+        <fieldset class="border border-dark p-2">
+            <legend class="w-auto">Tokens</legend>
+            <p class="input-group">
+            <p>
+                Access Token
+            </p>
+            <input id="txtAccessToken" width="604" type="text" class="input-group-text w-75" readonly />
+            <input id="btnRefresh" value="Get new access_token with Silent Authentication" type="submit" class="btn btn-outline-primary mt-4" />
+            </p>
+            <p>
+                Log:
+                <pre id="divAuthActivity" class="border border-warning pb-4">
+        </pre>
+            </p>
+            <input id="btnClearTokens" value="Clear Tokens" class="btn btn-outline-danger" type="submit" />
+        </fieldset>
+        <fieldset class="border border-dark p-2 mt-4">
+            <legend class="w-auto">APIs</legend>
+            <h5>Get an user's crates</h5>
+
+            <p class="input-group">
+                <input id="txtGetCratesFor" value="ApiDemoUser" type="text" class="input-group-text w-75" />
+                <input id="btnGetCratesFor" value="Call DJP API" type="submit" class="btn btn-outline-primary ml-4" />
+            </p>
+            <h5>Get crate details</h5>
+            <p class="input-group">
+                <input id="txtCrateId" value="93089" type="text" class="input-group-text mr-4" />
+                <input id="btnCallApi" value="Call DJP API" type="submit" class="btn btn-outline-primary" />
+            </p>
+
+            <p>
+                Output:
+                <pre id="divApiResponse" class="border border-success pt-4">
+      </pre>
+            </p>
+        </fieldset>
+    </div>
+</body>
+<script type="text/javascript">
+    (function ($) {
+
+        /*********************** Variables ******************************************/
+
+        var client_id = 'YOUR_CLIENT_ID_HERE'; // the client id of the client application
+
+        /*
+         * the client provided redirect uri on the client host. This is required
+         * Change this with the page that will handle the redirection from digitaldjpool.com
+         */
+        var redirect_uri = 'https://127.0.0.1:8080/authcodepkce.html';
+
+        /*
+         * All API requests MUST include a valid User-Agent header.
+         * Requests with no User-Agent header will be rejected.
+         * We request that you use your GitHub username, or the name of your application, for the User-Agent header value.
+         * This allows us to contact you if there are problems.
+         * For these examples we use your browser's user agent, but in a native application you must provide one.
+         */
+        var user_agent = 'AUTH-CODE-GRANT-EXAMPLE';
+
+        // A value included in the request that will also be returned in the code response. It must be random and
+        // and unique and is for preventing
+        // cross-site request forgery attacks. The value can also encode information about the user's state in the
+        // app before the authentication request occurred, such as the page or view they were on.
+        var state = 'some-custom-value'
+
+        /************************** Setup *******************************************/
+        var server = 'https://digitaldjpool.com';
+        var authorizeUri = server + '/auth'; // The auth endpoint to call with query string parameters to get to the auth grant window
+        var tokenUri = server + '/token'; // the token uri on Digital Dj Pool that returns the access_token and refresh_token
+        var apiUri = server + '/api'; // The apiUri that Digital Dj Pool exposes with oAuth
+        var usersEndpoint = server + '/api/authext/getuser'; // sample api call to get your username/id
+
+        SetTextBoxes();
+
+        $('#txtAccessToken').val('Get by clicking');
+        $('#txtAccessToken').val(Cookies.get('access_token'));
+        $('#txtRefreshToken').val(Cookies.get('refresh_token'));
+
+        const verifier = uuidv4(); // or node: verifier = base64URLEncode(crypto.randomBytes(32))
+        const challengeBuffer = await sha256(new TextEncoder().encode(verifier));
+        const challenge = buf2hex(challengeBuffer);
+
+        Cookies.set('code_verifier', verifier); // as with the rest of the cookie stuff here, not secure- for example purposes only
+
+        /************************** Flow  *******************************************/
+
+        // 1. Request Authorization Code
+        $('#btnAuthorize').click(function () {
+            var uri = addQueryString(authorizeUri, {
+                'client_id': client_id,
+                'redirect_uri': redirect_uri,
+                'state': state,
+                'scope': 'crates',
+                'response_type': 'code',
+                'code_challenge': btoa(challenge),
+
+            });
+
+            var oauthWindow = window.open(uri, 'Authorize', 'width=640,height=480');
+
+            var timer = setInterval(function () {
+                if (oauthWindow.closed) {
+                    clearInterval(timer);
+
+                    $('#txtAccessToken').val(Cookies.get('access_token'));
+                    $('#txtRefreshToken').val(Cookies.get('refresh_token'));
+
+                    $.ajax(usersEndpoint, {
+                        beforeSend: function (xhr) {
+                            xhr.setRequestHeader('Authorization', 'Bearer ' + $('#txtAccessToken').val());
+                        },
+                        success: function (data) {
+                            Cookies.set('name', data.id);
+                            $('#spanName').html(data.id);
+                        },
+                    });
+                }
+            }, 500);
+        });
+
+        // 2. Request Access Token (See Below) -- This happens when the /auth call returns the user to the `redirect_uri`
+
+        // 3. Use Access Token with API Calls
+        $('#btnGetCratesFor').click(function () {
+            $.ajax(apiUri + '/users/' + $('#txtGetCratesFor').val() + '/crates', {
+                beforeSend: function (xhr) {
+                    xhr.setRequestHeader('Authorization', 'Bearer ' + $('#txtAccessToken').val());
+                },
+                dataType: 'json',
+                success: function (data) {
+                    $('#divApiResponse').html(JSON.stringify(data, null, 4));
+                },
+                statusCode: {
+                    400: function (data) {
+                        $('#divApiResponse').html(JSON.stringify(data, null, 4));
+                    },
+                    404: function (data) {
+                        var responseJson = jQuery.parseJSON(data.responseText);
+                        $('#divApiResponse').html(JSON.stringify(responseJson, null, 4));
+                    },
+                    401: function (data) {
+                        var message = '401 unauthorized.  Trying to get new access_token in iframe...\n';
+                        $('#divAuthActivity').append(document.createTextNode(message));
+                        getNewAccessToken();
+                    },
+                },
+
+            });
+        });
+
+        $('#btnCallApi').click(function () {
+            $.ajax(apiUri + '/crates/' + $('#txtCrateId').val(), {
+                beforeSend: function (xhr) {
+                    xhr.setRequestHeader('Authorization', 'Bearer ' + $('#txtAccessToken').val());
+                },
+                dataType: 'json',
+                success: function (data) {
+                    $('#divApiResponse').html(JSON.stringify(data, null, 4));
+                },
+                statusCode: {
+                    400: function (data) {
+                        $('#divApiResponse').html(JSON.stringify(data, null, 4));
+                    },
+                    404: function (data) {
+                        var responseJson = jQuery.parseJSON(data.responseText);
+                        $('#divApiResponse').html(JSON.stringify(responseJson, null, 4));
+                    },
+                    401: function (data) {
+                        var message = '401 unauthorized.  Trying to get new access_token in iframe...\n';
+                        $('#divAuthActivity').append(document.createTextNode(message));
+                        getNewAccessToken();
+                    },
+                },
+
+            });
+        });
+
+        // 4. Refresh Access Token
+        $('#btnRefresh').click(function () {
+            getNewAccessToken();
+        });
+
+        // Helpers
+        $('#btnClearTokens').click(function () {
+            Object.keys(Cookies.get()).forEach(function (cookie) {
+                Cookies.remove(cookie);
+            });
+            $('#txtAccessToken').val('');
+            $('#txtRefreshToken').val('');
+            $('#spanName').val('');
+        });
+
+        function addQueryString(uri, parameters) {
+            var delimiter = (uri.indexOf('?') == -1) ? '?' : '&';
+            for (var parameterName in parameters) {
+                var parameterValue = parameters[parameterName];
+                uri += delimiter + encodeURIComponent(parameterName) + '=' + encodeURIComponent(parameterValue);
+                delimiter = '&';
+            }
+            return uri;
+        }
+
+        function getNewAccessToken() {
+            $.ajax({
+                method: 'POST',
+                url: tokenUri,
+                data: {
+                    'grant_type': 'refresh_token',
+                    'client_id': client_id,
+                    'client_secret': client_secret,
+                    'refresh_token': Cookies.get('refresh_token'),
+                },
+                success: function (data) {
+                    Cookies.set('access_token', data.access_token);
+                    $('#txtAccessToken').val(data.access_token);
+                    $('#divAuthActivity').append('<div class="ml-3">Got new token</div>');
+                },
+                statusCode: {
+                    400: function () {
+                        $('#divAuthActivity').append(
+                            'bad request. Possibly bad credentials or refresh_token expired <br />');
+                    },
+                },
+            });
+        }
+
+        function SetTextBoxes() {
+            $('#spanName').html(Cookies.get('name'));
+            $('#txtAccessToken').val(Cookies.get('access_token'));
+            $('#txtRefreshToken').val(Cookies.get('refresh_token'));
+        }
+
+        // set global querystring for the following logic
+        location.queryString = {};
+        location.search.substr(1).split('&').forEach(function (pair) {
+            if (pair === '') return;
+            var parts = pair.split('=');
+            location.queryString[parts[0]] = parts[1] &&
+                decodeURIComponent(parts[1].replace(/\+/g, ' '));
+        });
+
+        // 2. Request Access Token -- This happens when the /auth call returns the user to the `redirect_uri`
+        if (location.queryString.state !== undefined) {
+            if (location.queryString.state != state) {
+                alert('state does not match. Cannot trust response');
+            } else if (location.queryString.code !== undefined) { // received a one time auth code from an oauth server. We need to post it back and get access and refresh tokens
+                $.ajax({
+                    method: 'POST',
+                    data: {
+                        'grant_type': 'authorization_code',
+                        'code': location.queryString.code,
+                        'redirect_uri': redirect_uri,
+                    },
+                    url: tokenUri,
+                    headers: {
+                        'Authorization': 'Basic ' + btoa(client_id + ':' + client_secret), // btoa is base 64 encoding, this is conventional for basic auth
+                    },
+                    statusCode: {
+                        400: function () {
+                            alert('bad request');
+                        },
+                    },
+                })
+                    .done(function (data) {
+                        Cookies.set('access_token', data.access_token);
+                        Cookies.set('refresh_token', data.refresh_token);
+
+                        window.close();
+                    });
+            }
+        }
+    })(jQuery);
+</script>
+
+</html>
