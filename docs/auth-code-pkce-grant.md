@@ -9,15 +9,16 @@ More BCP (as of 20190513) discussion in this draft: https://tools.ietf.org/html/
 
 <img src="./AuthCodePKCEGrantDiagram.png" />
 
+<!-- Paste the following comment in this web site to edit the diagram and get a new image https://www.websequencediagrams.com/ -->
 <!--
 Flow Sequence:
-Native App->/auth: Pops a browser dialog. \nRequests authorization code.
+Native App->/auth: Pops a browser dialog.\nSends random State and sha256 Challenge of Verifier. \nRequests AuthCode.
 Native App->/auth: User completes policy
-/auth->Native App: Returns authorization code
-Native App->/token: Requests an OAuth berer token
+/auth->Native App: Returns AuthCode and State
+Native App->/token: Verifies State, sends AuthCode, Verifier and requests OAuth tokens
 /token->Native App: Returns an access token and a refresh token
-Native App->/api:Calls API with access token in Authorization header
-/api->/api:Validate access token
+Native App->/api:Calls API with Access token in Authorization header
+/api->/api:Validate Access token
 /api->Native App:Returns data to app
 alt Access token expires
 end
@@ -25,6 +26,7 @@ Native App->/token: Request a new token using refresh_token
 /token->Native App: Returns a new access token
 Native App->/api:Calls API with access token in Authorization header
 -->
+
 
 ## Request Authorization Code
 
