@@ -33,8 +33,8 @@ Once your application is registered, it will communicate with Digital DJ Pool by
 We support common OAuth grant types, or flows, that correspond to a specific authentications scenario. The supported grants, or flows, are:
 
 * [Authorization Code Grant](auth-code-grant.md)
+* [Authorization Code PKCE Grant](auth-code-pkce-grant.md)
 * [Resource Owner Password Credentials Grant](auth-resource-owners-credentials-grant.md)
-* [Implicit Grant](auth-implicit-grant.md)
 
 ## Tokens
 
