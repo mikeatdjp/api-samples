@@ -108,8 +108,7 @@
 
             sha256(new TextEncoder().encode(code_verifier))
                 .then(c => {  // hopefuly before btnAuthorize.click()
-                    const challengeBuffer = c;
-                    code_challenge = buf2hex(challengeBuffer);
+                    code_challenge = bufferToBase64(new Uint8Array(c)),  // we can't btoa this sha256 because it will have charcodes above 127 that btoa can't handle
                     localStorage.setItem('code_challenge', code_challenge);
                 });
 
@@ -125,8 +124,7 @@
                 'state': getState(),
                 'scope': 'crate',
                 'response_type': 'code',
-                'code_challenge': btoa(code_challenge),
-
+                'code_challenge': code_challenge
             });
 
             var oauthWindow = window.open(uri, 'Authorize', 'width=640,height=480');
@@ -188,7 +186,7 @@
                     'client_id': client_id,
                     'code': location.queryString.code,
                     'redirect_uri': redirect_uri,
-                    'code_verifier': btoa(code_verifier)
+                    'code_verifier': btoa(code_verifier)  // we can btoa verifier because we know uuid4 is all ascii
                 }));
             }
             localStorage.setItem('state', null);  // one time use
@@ -199,9 +197,8 @@
             const xhr = new XMLHttpRequest();
             xhr.open('GET', apiUri + '/users/' + txtGetCratesFor.value + '/crates');
             xhr.setRequestHeader('Authorization', 'Bearer ' + txtAccessToken.value);
-            //dataType: 'json',
 
-            xhr.onreadystatechange = function () { // Call a function when the state changes.
+            xhr.onreadystatechange = function () {
                 if (this.readyState === XMLHttpRequest.DONE && this.status === 200) {
                     divApiResponse.innerHTML = JSON.stringify(xhr.responseText, null, 4);
                 }
@@ -209,9 +206,9 @@
                     divApiResponse.innerHTML = JSON.stringify(xhr.responseText, null, 4);
                 }
                 else if (this.readyState === XMLHttpRequest.DONE && this.status === 404) {
-                    var responseJson = jQuery.parseJSON(hxr.responseText);
+                    var responseJson = JSON.parse(xhr.responseText);
                     divApiResponse.innerHTML = JSON.stringify(responseJson, null, 4);
-                } else if (this.readyState === XMLHttpRequest.DONE && this.status === 404) {
+                } else if (this.readyState === XMLHttpRequest.DONE && this.status === 401) {
                     var message = '401 unauthorized.  Trying to get new access_token in iframe...\n';
                     divAuthActivity.append(document.createTextNode(message));
                     getNewAccessToken();
@@ -220,32 +217,29 @@
             xhr.send();
         }
 
-        //btnCallApi.onclick =function () {
-        //    $.ajax(apiUri + '/crates/' + txtCrateId.value, {
-        //        beforeSend: function (xhr) {
-        //            xhr.setRequestHeader('Authorization', 'Bearer ' + txtAccessToken.value);
-        //        },
-        //        dataType: 'json',
-        //        success: function (data) {
-        //            divApiResponse.innerHTML = JSON.stringify(xhr.responseText, null, 4);
-        //        },
-        //        statusCode: {
-        //            400: function (data) {
-        //                divApiResponse.innerHTML = JSON.stringify(xhr.responseText, null, 4);
-        //            },
-        //            404: function (data) {
-        //                var responseJson = JSON.parse(xhr.responseText);
-        //                divApiResponse.innerHTML = JSON.stringify(responseJson, null, 4);
-        //            },
-        //            401: function (data) {
-        //                var message = '401 unauthorized.  Trying to get new access_token in iframe...\n';
-        //                divAuthActivity.append(document.createTextNode(message));
-        //                getNewAccessToken();
-        //            },
-        //        },
-
-        //    });
-        //}
+        btnCallApi.onclick = function () {
+            const xhr = new XMLHttpRequest();
+            xhr.open('GET', apiUri + '/crates/' + txtCrateId.value);
+            xhr.setRequestHeader('Authorization', 'Bearer ' + txtAccessToken.value);
+            xhr.onreadystatechange = function () {
+                if (this.readyState === XMLHttpRequest.DONE && this.status === 200) {
+                    var responseJson = JSON.parse(xhr.responseText);
+                    divApiResponse.innerHTML = JSON.stringify(responseJson, null, 4);
+                }
+                else if (this.readyState === XMLHttpRequest.DONE && this.status === 400) {
+                    divApiResponse.innerHTML = JSON.stringify(xhr.responseText, null, 4);
+                }
+                else if (this.readyState === XMLHttpRequest.DONE && this.status === 404) {
+                    var responseJson = JSON.parse(xhr.responseText);
+                    divApiResponse.innerHTML = JSON.stringify(responseJson, null, 4);
+                } else if (this.readyState === XMLHttpRequest.DONE && this.status === 401) {
+                    var message = '401 unauthorized.  Trying to get new access_token in iframe...\n';
+                    divAuthActivity.append(document.createTextNode(message));
+                    getNewAccessToken();
+                }
+            };
+            xhr.send();
+        }
 
         // 4. Refresh Access Token
         btnRefresh.onclick = function () {
@@ -316,8 +310,12 @@
             return await window.crypto.subtle.digest('SHA-256', buffer);   //  or node crypto.createHash('sha256').update(buffer).digest();
         }
 
-        function buf2hex(buffer) { // buffer is an ArrayBuffer
-            return Array.prototype.map.call(new Uint8Array(buffer), x => ('00' + x.toString(16)).slice(-2)).join('');
+        // https://coolaj86.com/articles/typedarray-buffer-to-base64-in-javascript/
+        function bufferToBase64(buf) {
+            var binstr = Array.prototype.map.call(buf, function (ch) {
+                return String.fromCharCode(ch);
+            }).join('');
+            return btoa(binstr);
         }
 
         function urlencodeFormData(item) {
