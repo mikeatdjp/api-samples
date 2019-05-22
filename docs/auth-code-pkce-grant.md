@@ -3,6 +3,7 @@
 ## Usages
 
 The OAuth 2.0 Proof Key for Code Exchange flow is described in [RFC 7636](https://tools.ietf.org/html/rfc7636). It is used to perform authentication and authorization typically in server-side web applications where the client_secret can be securely stored and kept safe. The flow enables apps to securely acquire access_tokens that can be used to access secured resources. 
+Higher level discussion: https://www.oauth.com/oauth2-servers/pkce/
 More BCP (as of 20190513) discussion in this draft: https://tools.ietf.org/html/draft-ietf-oauth-browser-based-apps-00
 
 ## Flow Diagram
@@ -39,7 +40,8 @@ client_id=[YOUR-CLIENT-ID]
 &state=123456
 &redirect_uri=https://127.0.0.1/yourapp
 &scope=crates
-&code_challenge=SHA256OFSOMERANDOMBINARYARRAY==  (base64 encode of course so no ='s signs)
+&code_challenge=SHA256OFSOMERANDOMBINARYARRAY==  (base64 encoded)
+&code_challenge_method=S256
 ```
 
 | Parameter       | Required    | Description                                                                                                                                                                                                                                                                                                                                                                                          |
@@ -50,6 +52,7 @@ client_id=[YOUR-CLIENT-ID]
 | `redirect_uri`  | yes         | The redirect_uri of your app, where authentication responses can be sent and received by your app. It must exactly match one of the redirect_uris you registered in the portal, except it must be url encoded.                                                                                                                                                                                       |
 | `scope`         | yes         | A comma-separated list of scopes that you want the user to consent to.                                                                                                                                                                                                                                                                                                                               |
 | `code_challenge`| yes			| the sha256 hashed value of a random binary verifier (verifier is saved to send with the token request later)
+| `code_challenge_method`| yes			| We only currently accept "S256" |
 
 At this point the user is presented with a page on DigitalDJPool.com that will allow the user to authenticate. Once authenticated the user will be prompted to grant access to your app for the requested scopes. The user is then sent back to your application at the configured `redirect_uri` with the specific one-time-use Auth Code in the querystring.
 
