@@ -51,7 +51,7 @@ client_id=[YOUR-CLIENT-ID]
 | `state`         | yes			| A value included in the request that will also be returned in the token response. A randomly generated unique value is typically used for preventing cross-site request forgery attacks. The value can also encode information about the user's state in the app before the authentication request occurred, such as the page or view they were on. |
 | `redirect_uri`  | yes         | The redirect_uri of your app, where authentication responses can be sent and received by your app. It must exactly match one of the redirect_uris you registered in the portal, except it must be url encoded.                                                                                                                                                                                       |
 | `scope`         | yes         | A comma-separated list of scopes that you want the user to consent to.                                                                                                                                                                                                                                                                                                                               |
-| `code_challenge`| yes			| the sha256 hashed value of a random binary verifier (verifier is saved to send with the token request later)
+| `code_challenge`| yes			| The sha256 hashed value of a random binary verifier (verifier is saved to send with the token request later)
 | `code_challenge_method`| yes			| We only currently accept "S256" |
 
 At this point the user is presented with a page on DigitalDJPool.com that will allow the user to authenticate. Once authenticated the user will be prompted to grant access to your app for the requested scopes. The user is then sent back to your application at the configured `redirect_uri` with the specific one-time-use Auth Code in the querystring.
@@ -65,7 +65,7 @@ GET https://127.0.0.1/yourapp?code=ABC123FFABD&state=123456
 | Parameter | Description                                                                                                                                                                                                            |
 | --------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `code`    | The authorization code that the app requested. The app can use the authorization code and the verifier used to create the challenge to request an access token for the target resource. Authorization codes are very short lived, typically expiring within minutes. |
-| `state`   | the same state from the request should appear in the response. The app should verify that the state values in the request and response are identical.                                  |
+| `state`   | The same state from the request should appear in the response. The app should verify that the state values in the request and response are identical.                                  |
 
 ## Request Access Token
 
