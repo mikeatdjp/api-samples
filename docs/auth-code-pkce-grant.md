@@ -2,7 +2,7 @@
 
 ## Usages
 
-The OAuth 2.0 Proof Key for Code Exchange flow is described in [RFC 7636](https://tools.ietf.org/html/rfc7636). It is used to perform authentication and authorization typically in server-side web applications where the client_secret can be securely stored and kept safe. The flow enables apps to securely acquire access_tokens that can be used to access secured resources. 
+The OAuth 2.0 Proof Key for Code Exchange flow is described in [RFC 7636](https://tools.ietf.org/html/rfc7636). It is used to perform authorization typically in server-side web applications where the client_secret can be securely stored and kept safe. The flow enables apps to securely acquire access_tokens that can be used to access secured resources. 
 Higher level discussion: https://www.oauth.com/oauth2-servers/pkce/
 More BCP (as of 20190513) discussion in this draft: https://tools.ietf.org/html/draft-ietf-oauth-browser-based-apps-00
 
